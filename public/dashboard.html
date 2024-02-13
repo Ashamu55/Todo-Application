@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+    <script defer src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL"
+        crossorigin="anonymous"></script>
+</head>
+
+<body>
+
+    <body class="mx-auto col-lg-7 col-10 p-3">
+        <h1 class="mt-lg-5">Welcome, I am the undefeated dashboard</h1>
+        <div id="show" class="shadow-sm p-3"></div>
+
+        <button class="btn btn-danger my-3" onclick="signO()">Sign out</button>
+
+        <div class="my-3 shadow-sm p-3">
+            <h4 class="text-center my-2">Todo Application</h4>
+            <input type="text" class="form-control my-3 shadow-none" id="todo" placeholder="Todo">
+            <input type="text" class="form-control my-3 shadow-none" id="todoDes" placeholder="Todo Description">
+            <button class="btn btn-info w-100" onclick="submitTodo()">Submit</button>
+        </div>
+        <div class="my-3 shadow-sm p-2" id="disp"></div>
+
+
+
+
+
+        <script type="module">
+            // Import the functions you need from the SDKs you need
+            import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-app.js";
+            import { getAuth, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-auth.js";
+            import { getDatabase, ref, set, onValue, remove } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-database.js"
+
+            const firebaseConfig = {
+                apiKey: "AIzaSyD9JUgySHlYBKBf5LhhJaZTKdX84MOyYhQ",
+                authDomain: "jan-2-class.firebaseapp.com",
+                projectId: "jan-2-class",
+                storageBucket: "jan-2-class.appspot.com",
+                messagingSenderId: "172242628612",
+                appId: "1:172242628612:web:35a840cdd38cea62164551",
+                databaseURL: "https://jan-2-class-default-rtdb.firebaseio.com",
+            };
+
+            const app = initializeApp(firebaseConfig);
+            const auth = getAuth(app);
+            const database = getDatabase(app)
+
+            onAuthStateChanged(auth, (user) => {
+                if (user) {
+                    const uid = user.uid;
+                    console.log(`user is signed in, ${uid}`);
+                    console.log(user);
+                    show.innerHTML = `
+                <h3>Welcome ${user.displayName}</h3>
+                <p>Your email address is ${user.email}</p>
+                <div>
+                    Profile picture:
+                    <img src="${user.photoURL}" alt="profile pic" />
+                </div>
+            `
+                } else {
+                    console.log('user is signed out');
+                    window.location.href = 'index.html'
+                }
+            });
+
+            const signO = () => {
+                signOut(auth)
+                    .then(() => { console.log('out with you, o devilish user'); })
+                    .catch(() => { console.log('user is possessed, not going out anutime soon'); })
+            }
+            window.signO = signO
+
+            const submitTodo = () => {
+                let time = new Date().toLocaleTimeString()
+                let date = new Date().toLocaleDateString()
+                // alert("submitted")
+                let inputOne = document.getElementById('todo').value
+                let inputTwo = document.getElementById('todoDes').value
+
+                if (inputOne === '' || inputTwo === '') {
+                    alert("Fill something inside of me now")
+                } else {
+                    let obj = { time, date, inputOne, inputTwo }
+                    let dbRef = ref(database, `todos/2`)
+                    let saved = set(dbRef, obj)
+                    if (saved) {
+                        document.getElementById('todo').value = ""
+                        document.getElementById('todoDes').value = ""
+                        console.log("Saved successfully");
+                    } else {
+                        console.log("failed to save");
+                    }
+                }
+            }
+            window.submitTodo = submitTodo
+
+            let newRef = ref(database, `todos`)
+            onValue(newRef, (snapshot) => {
+                let data = snapshot.val()
+                console.log(data);
+
+                if (data) {
+                    document.getElementById('disp').innerHTML = '';
+                    Object.entries(data).forEach(([key, todo]) => {
+                        disp.innerHTML += `
+                        <h5>${todo.inputOne}</h5>
+                        <h5>${todo.inputTwo}</h5>
+                        <small>${todo.time}, ${todo.date}</small>
+                        <button class="btn btn-danger" onclick="deleteTodo('${key}')">Delete</button>
+                    `
+                    })
+                }
+            })
+
+
+            const deleteTodo = (key) => {
+                remove(ref(database, `todos/${key}`))
+                    .then(() => console.log("Todo deleted successfully"))
+                    .catch((error) => console.log("Error deleting todo:", error));
+                    document.getElementById('disp').innerHTML = '';
+            }
+
+            window.deleteTodo = deleteTodo
+        </script>
+    </body>
+
+</html>
