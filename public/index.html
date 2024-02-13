@@ -65,6 +65,29 @@
     }
 
     window.signG = signG;
+
+    const signP = () => {
+            window.recaptchaVerifier = new RecaptchaVerifier(auth, 'sign-in-button', {
+                'size': 'invisible',
+                'callback': (response) => {
+                    console.log(response);
+                }
+            });
+
+            const appVerifier = window.recaptchaVerifier;
+            const phoneNumber = document.getElementById('phoneNumber').value
+            signInWithPhoneNumber(auth, phoneNumber, appVerifier)
+                .then((confirmationResult) => {
+                    console.log("msg sent");
+                    var verificationCode = prompt('Please enter the verification code sent to your mobile phone:');
+                    return confirmationResult.confirm(verificationCode);
+                }).then((result)=>{
+                    console.log("successfully authenticated", + result);
+                }).catch((error) => {
+                    console.log("error: " + error);
+                });
+        }
+        window.signP = signP
   </script>
 </body>
 
